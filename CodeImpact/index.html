@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeImpact — Change Impact Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="CodeImpact home">
+        <span class="brand-mark"><i class="bi bi-diagram-3-fill"></i></span>
+        <span>Code<span class="brand-accent">Impact</span><small>CHANGE INTELLIGENCE</small></span>
+      </a>
+      <div class="side-label">WORKSPACE</div>
+      <button class="nav-item active" data-view="analyzer"><i class="bi bi-grid-1x2"></i> Impact Analyzer</button>
+      <button class="nav-item" data-view="history"><i class="bi bi-clock-history"></i> Analysis History <span id="historyCount" class="nav-count">0</span></button>
+      <div class="side-label side-label-gap">TOOLS</div>
+      <button class="nav-item" id="loadSampleNav"><i class="bi bi-file-earmark-code"></i> Load sample project</button>
+      <button class="nav-item" id="clearBtn"><i class="bi bi-arrow-counterclockwise"></i> Reset workspace</button>
+      <div class="sidebar-bottom">
+        <div class="status-dot"></div>
+        <div><strong>Local analysis</strong><small>Your code stays in this browser</small></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark"><i class="bi bi-diagram-3-fill"></i></span> Code<span class="brand-accent">Impact</span></div>
+        <div class="breadcrumb-text"><span>Workspace</span><i class="bi bi-chevron-right"></i><strong id="breadcrumbCurrent">Impact Analyzer</strong></div>
+        <div class="topbar-right"><span class="live-pill"><span></span> READY</span><button class="profile-btn" id="profileBtn" type="button"><i class="bi bi-person-circle"></i><span>Profile</span></button><button class="icon-btn" id="helpBtn" title="About this project"><i class="bi bi-question-circle"></i></button></div>
+      </header>
+
+      <section id="analyzerView" class="view active-view">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">DEVELOPER TOOLKIT / 01</div>
+            <h1>Change Impact <span>Analyzer</span></h1>
+            <p>Understand what your code changes could affect before you ship them.</p>
+          </div>
+          <button class="btn btn-outline-light btn-sm" id="sampleBtn"><i class="bi bi-play-fill me-1"></i> Try sample</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-icon purple"><i class="bi bi-folder2-open"></i></div><div><small>FILES ANALYZED</small><strong id="statFiles">0</strong><span>in current project</span></div></div>
+          <div class="stat-card"><div class="stat-icon blue"><i class="bi bi-diagram-3"></i></div><div><small>DEPENDENCIES</small><strong id="statDeps">0</strong><span>local links detected</span></div></div>
+          <div class="stat-card"><div class="stat-icon orange"><i class="bi bi-lightning-charge"></i></div><div><small>IMPACTED FILES</small><strong id="statImpacted">—</strong><span>after selected change</span></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="bi bi-shield-check"></i></div><div><small>RISK LEVEL</small><strong id="statRisk">—</strong><span>heuristic estimate</span></div></div>
+        </div>
+
+        <div class="workspace-grid">
+          <section class="panel upload-panel">
+            <div class="panel-heading"><div><span class="step-number">01</span><div><h2>Project source</h2><p>Upload JavaScript files or a ZIP project</p></div></div><span class="mini-tag">INPUT</span></div>
+            <label class="drop-zone" id="dropZone" for="fileInput">
+              <input type="file" id="fileInput" accept=".js,.mjs,.cjs,.zip" multiple hidden />
+              <span class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+              <strong>Drop files here or <em>browse</em></strong>
+              <span>Supports .js, .mjs, .cjs and .zip files</span>
+              <small><i class="bi bi-lock"></i> Files are processed locally in your browser</small>
+            </label>
+            <div class="source-actions">
+              <button class="btn btn-primary flex-grow-1" id="analyzeBtn"><i class="bi bi-search me-2"></i>Analyze project</button>
+              <button class="btn btn-dark-outline" id="sampleBtn2" title="Load sample"><i class="bi bi-stars"></i></button>
+            </div>
+            <div class="file-list-header"><span>PROJECT FILES</span><span id="fileCountLabel">0 files</span></div>
+            <div id="fileList" class="file-list empty-list"><div class="empty-state"><i class="bi bi-file-earmark-code"></i><span>No files loaded yet</span></div></div>
+          </section>
+
+          <section class="panel change-panel">
+            <div class="panel-heading"><div><span class="step-number">02</span><div><h2>Simulate a change</h2><p>Choose a file and describe the code update</p></div></div><span class="mini-tag">CHANGESET</span></div>
+            <label class="field-label" for="targetFile">Target file</label>
+            <select class="form-select custom-select" id="targetFile" disabled><option value="">Load a project first</option></select>
+            <label class="field-label mt-3" for="changeDescription">Change description</label>
+            <input class="form-control custom-input" id="changeDescription" placeholder="e.g. Update authentication logic" />
+            <label class="field-label mt-3" for="beforeCode">Before (current code)</label>
+            <textarea id="beforeCode" class="form-control code-editor" spellcheck="false" placeholder="Select a file to view its current code..." disabled></textarea>
+            <div class="editor-footer"><span><i class="bi bi-code-slash"></i> BEFORE SNAPSHOT</span><span id="beforeLines">0 lines</span></div>
+            <label class="field-label mt-3" for="afterCode">After (proposed code)</label>
+            <textarea id="afterCode" class="form-control code-editor after-editor" spellcheck="false" placeholder="Edit the proposed code here..." disabled></textarea>
+            <div class="editor-footer"><span><i class="bi bi-pencil-square"></i> PROPOSED CHANGE</span><span id="afterLines">0 lines</span></div>
+            <button class="btn btn-primary w-100 mt-3" id="impactBtn" disabled><i class="bi bi-lightning-charge-fill me-2"></i>Analyze change impact</button>
+            <p class="helper-note"><i class="bi bi-info-circle"></i> Impact is estimated from detected imports and simple code-change heuristics.</p>
+          </section>
+        </div>
+
+        <section class="panel results-panel" id="resultsPanel">
+          <div class="panel-heading results-heading"><div><span class="step-number">03</span><div><h2>Impact report</h2><p>Dependency graph and potentially affected files</p></div></div><div class="result-actions"><button class="btn btn-dark-outline btn-sm" id="exportBtn" disabled><i class="bi bi-download me-1"></i> Export report</button><span id="riskBadge" class="risk-badge neutral">AWAITING ANALYSIS</span></div></div>
+          <div id="resultsEmpty" class="results-empty"><div class="empty-illustration"><i class="bi bi-bezier2"></i></div><h3>Your analysis will appear here</h3><p>Load a project, select a target file, and analyze a proposed change.</p><button class="btn btn-outline-light btn-sm" id="resultsSampleBtn">Explore with sample data <i class="bi bi-arrow-right ms-1"></i></button></div>
+          <div id="resultsContent" class="results-content hidden">
+            <div class="result-summary" id="resultSummary"></div>
+            <div class="graph-section">
+              <div class="subsection-heading"><div><h3>Dependency map</h3><p>Lines indicate detected local imports</p></div><div class="legend"><span><i class="legend-dot target-dot"></i> Target</span><span><i class="legend-dot impacted-dot"></i> Impacted</span><span><i class="legend-dot normal-dot"></i> Other</span></div></div>
+              <div id="dependencyGraph" class="dependency-graph"><div class="graph-fallback">Graph will render after analysis.</div></div>
+            </div>
+            <div class="impact-list-section">
+              <div class="subsection-heading"><div><h3>Potentially impacted files</h3><p>Files that directly or indirectly depend on the selected file</p></div><span id="impactCount" class="count-pill">0 files</span></div>
+              <div id="impactList" class="impact-list"></div>
+            </div>
+            <div class="diff-section">
+              <div class="subsection-heading"><div><h3>Change overview</h3><p>Line-level preview of the proposed update</p></div></div>
+              <div id="diffSummary" class="diff-summary"></div>
+            </div>
+            <div class="disclaimer"><i class="bi bi-exclamation-triangle"></i><span><strong>Prototype limitation:</strong> This tool uses lightweight import detection and text comparison. It does not understand every JavaScript syntax pattern and cannot guarantee that a change is safe.</span></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="historyView" class="view">
+        <div class="page-heading"><div><div class="eyebrow">WORKSPACE / 02</div><h1>Analysis <span>History</span></h1><p>Review reports saved in this browser.</p></div><button class="btn btn-outline-light btn-sm" id="clearHistoryBtn"><i class="bi bi-trash me-1"></i> Clear history</button></div>
+        <section class="panel history-panel"><div id="historyList" class="history-list"><div class="empty-state history-empty"><i class="bi bi-clock-history"></i><span>No saved analyses yet</span><small>Completed reports will appear here.</small></div></div></section>
+      </section>
+
+      <footer class="footer"><span>CodeImpact <span class="footer-dot">•</span> Browser-based prototype</span><span>Built with HTML, CSS & JavaScript</span></footer>
+    </main>
+  </div>
+
+  <div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="appToast" class="toast custom-toast" role="status"><div class="toast-body"><i class="bi bi-info-circle me-2"></i><span id="toastMessage">Message</span></div></div></div>
+  <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content help-modal profile-modal">
+        <div class="modal-header">
+          <div><h5 class="modal-title"><i class="bi bi-person-circle me-2"></i>Your Profile</h5><small class="profile-subtitle">Your account information</small></div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="profileForm">
+          <div class="modal-body">
+            <label class="profile-label" for="profileName">Full name</label>
+            <input class="form-control profile-input" id="profileName" name="name" placeholder="Enter your name" autocomplete="name" />
+            <label class="profile-label" for="profileNumber">Phone number</label>
+            <input class="form-control profile-input" id="profileNumber" name="number" type="tel" placeholder="Enter your phone number" autocomplete="tel" />
+            <label class="profile-label" for="profileCompany">Company name</label>
+            <input class="form-control profile-input" id="profileCompany" name="company" placeholder="Enter your company name" autocomplete="organization" />
+            <p class="profile-note"><i class="bi bi-info-circle me-1"></i>These details are saved only in this browser.</p>
+          </div>
+          <div class="modal-footer profile-footer">
+            <button type="button" class="btn btn-logout" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Log out</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Save information</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content help-modal"><div class="modal-header"><h5 class="modal-title">About CodeImpact</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><p>CodeImpact is a front-end prototype that explores how a change in one JavaScript file may affect other files in a project.</p><ul><li>Upload JavaScript files or a ZIP archive.</li><li>Detect basic local imports and dependencies.</li><li>Compare a current file with a proposed version.</li><li>View a dependency graph and export a text report.</li></ul><p class="text-secondary small mb-0">Analysis runs in your browser. The results are heuristic and should not replace tests, code review, or a real parser.</p></div></div></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
